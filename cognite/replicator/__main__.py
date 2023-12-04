@@ -249,6 +249,9 @@ def main():
         config_file_str = get_no_repeat_lines_as_string(config_file_lines)
         config = yaml.safe_load(config_file_str)
 
+    if config.get("target_dataset_id") and config.get("dataset_ids"):
+        src_dst_dataset_mapping = {int(k) : int(config.get("target_dataset_id")) for k in config.get("dataset_ids")}
+
     cognite.replicator.__init__.configure_logger(
         config.get("log_level", "INFO").upper(), Path(config.get("log_path", "log"))
     )
@@ -351,12 +354,21 @@ def main():
 
         else:
             # authenticate by client secret
-            creds = OAuthClientCredentials(
-                token_url=f"https://login.microsoftonline.com/{dst_tenant_id}/oauth2/v2.0/token",
-                client_id=config.get("dst_CLIENT_ID"),
-                scopes=[f"https://{dst_cluster}.cognitedata.com/.default"],
+            # use 3d party authorizer
+            if config.get("dst_use_3d_party_auth"):
+                creds = OAuthClientCredentials(                
+                token_url = config.get("dst_AUTHORITY_HOST_URI"),
+                client_id=config.get("dst_CLIENT_ID"),                
+                scopes=[config.get("dst_SCOPES")],
                 client_secret=os.environ.get(config.get("dst_client_secret", "COGNITE_DESTINATION_CLIENT_SECRET")),
             )
+            else:
+                creds = OAuthClientCredentials(
+                    token_url=f"https://login.microsoftonline.com/{dst_tenant_id}/oauth2/v2.0/token",                    
+                    client_id=config.get("dst_CLIENT_ID"),
+                    scopes=[f"https://{dst_cluster}.cognitedata.com/.default"],                    
+                    client_secret=os.environ.get(config.get("dst_client_secret", "COGNITE_DESTINATION_CLIENT_SECRET")),
+                )
             dst_client = CogniteClient(
                 ClientConfig(
                     credentials=creds,
