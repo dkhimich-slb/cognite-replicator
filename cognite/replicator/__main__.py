@@ -249,6 +249,7 @@ def main():
         config_file_str = get_no_repeat_lines_as_string(config_file_lines)
         config = yaml.safe_load(config_file_str)
 
+    global src_dst_dataset_mapping
     if config.get("target_dataset_id") and config.get("dataset_ids"):
         src_dst_dataset_mapping = {int(k) : int(config.get("target_dataset_id")) for k in config.get("dataset_ids")}
 
