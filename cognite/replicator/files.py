@@ -186,6 +186,7 @@ def copy_files(
                         name=created_file.name,
                         external_id=created_file.external_id,
                         overwrite=True,
+                        data_set_id=created_file.data_set_id,
                     )
                 except CogniteAPIError as exc:
                     logging.error(f"Failed to create file {file.name}. {exc}")
@@ -199,6 +200,7 @@ def copy_files(
                             name=created_file.name,
                             external_id=created_file.external_id,
                             overwrite=True,
+                            data_set_id=created_file.data_set_id,
                         )
                 if response:
                     create_urls.append(response)
